@@ -5,7 +5,7 @@
 *.dylib
 
 bindata*.go
-
+build
 vendor
 
 # Test binary, build with `go test -c`
