@@ -4,7 +4,8 @@
 *.so
 *.dylib
 
-bindata_test.go
+bindata*.go
+
 vendor
 
 # Test binary, build with `go test -c`

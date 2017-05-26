@@ -53,7 +53,7 @@ type X509Data struct {
 	X509Certificate X509Certificate `xml:"X509Certificate"`
 }
 
-// X509Certificate the certificate that will be used to sign the AuthnResponse
+// X509Certificate the certificate that will be used to verify the signature of AuthnResponse
 type X509Certificate struct {
 	XMLName xml.Name `xml:"http://www.w3.org/2000/09/xmldsig# X509Certificate"`
 	Data    string   `xml:",chardata"`
