@@ -11,6 +11,6 @@ generate:
 test: generate
 	go test
 
-build-example:
+build-example: deps generate
 	mkdir -p build
 	go build -i -o build/svcprovider github.com/murphybytes/saml/examples/svcprovider
