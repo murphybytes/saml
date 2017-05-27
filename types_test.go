@@ -4,12 +4,13 @@ import (
 	"encoding/xml"
 	"testing"
 
+	"github.com/murphybytes/saml/generated"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEntityDescriptor(t *testing.T) {
-	buff, err := Asset("test_data/metadata.xml")
+	buff, err := generated.Asset("test_data/metadata.xml")
 	require.Nil(t, err)
 	require.NotNil(t, buff)
 	var descriptor EntityDescriptor

@@ -4,6 +4,15 @@ import (
 	"encoding/xml"
 )
 
+const (
+	// binding types
+	redirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+	postBinding     = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	soapBinding     = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+	// user identifier support
+	nameIDEmail = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+)
+
 // EntityDescriptor specifies metadata for a single SAML entity.
 type EntityDescriptor struct {
 	XMLName          xml.Name         `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
