@@ -35,6 +35,7 @@ func TestNewRedirectBinding(t *testing.T) {
 	buff, err := generated.Asset("test_data/metadata.xml")
 	require.Nil(t, err)
 	require.NotNil(t, buff)
+
 	var entity EntityDescriptor
 	err = xml.Unmarshal(buff, &entity)
 	require.Nil(t, err)
@@ -46,7 +47,9 @@ func TestNewRedirectBinding(t *testing.T) {
 		},
 	}
 
-	binding, err := NewRedirectBinding(sp, &entity.IDPSSODescriptor)
+	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
+
+	binding, err := provider.RedirectBinding()
 	assert.Nil(t, err)
 	assert.NotEqual(t, "", binding)
 }
