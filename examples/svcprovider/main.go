@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/murphybytes/saml"
 	"github.com/murphybytes/saml/examples/svcprovider/generated"
 	"github.com/pkg/errors"
 )
@@ -22,14 +23,20 @@ const homePagePath = "examples/svcprovider/pages/home.html"
 
 func main() {
 	var (
-		paramsPath string
-		help       bool
+		userEmail    string
+		userID       string
+		issuerURI    string
+		metadataPath string
+		help         bool
 	)
 
 	workingDir, err := os.Getwd()
 	errHandler(err, "getting working dir")
 
-	flag.StringVar(&paramsPath, "params", fmt.Sprintf("%s/params.json", workingDir), "Service provider parameters")
+	flag.StringVar(&userEmail, "email", "", "Email used for authentication.")
+	flag.StringVar(&userID, "uid", "", "User ID used for authentication.")
+	flag.StringVar(&issuerURI, "issuer-uri", "", "The identifier for the service provider.")
+	flag.StringVar(&metadataPath, "metadata-path", fmt.Sprintf("%s/metadata.xml", workingDir), "Path of the IDP metadata file.")
 	flag.BoolVar(&help, "help", false, "Show this message")
 	flag.Parse()
 
@@ -37,9 +44,6 @@ func main() {
 		flag.Usage()
 		os.Exit(exitNonSuccess)
 	}
-
-	_, err = newServiceProviderParams(paramsPath)
-	errHandler(err, "calling newServiceProviderParams")
 
 	cert, err := generated.Asset(certPath)
 	errHandler(err, "reading x509 cert")
@@ -52,6 +56,16 @@ func main() {
 
 	config := tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
+	}
+
+	metadata, err := getMetadata(metadataPath)
+	errHandler(err, "getting metadata")
+	sp := saml.ServiceProvider{
+		IssuerURI: issuerURI,
+		NameIDFormats: []string{
+			saml.NameIDEmail,
+		},
+		AssertionConsumerServiceURL: "https://localhost:8080/callback",
 	}
 
 	server := http.Server{
@@ -71,6 +85,8 @@ func main() {
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			})
+			mux.Handle("/login", newLoginHandler(sp, metadata.IDPSSODescriptor))
+			mux.Handle("/callback", newCallbackHandler())
 			return mux
 		}(),
 	}

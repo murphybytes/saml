@@ -6,25 +6,23 @@ This program illustrates the usage of the saml package.
 ### Usage
 ```
 Usage of build/svcprovider:
+  -email string
+    	Email used for authentication.
   -help
     	Show this message
-  -params string
-    	Service provider parameters (default "/Users/bob/params.json")
+  -issuer-uri string
+    	The identifier for the service provider.
+  -metadata-path string
+    	Path of the IDP metadata file. (default "/Users/someuser/metadata.xml")
+  -uid string
+    	User ID used for authentication.
 ```
-Parameters to run the service provider must be provided in a JSON formatted
-file. The default for this file is params.json located in your current working
-directory.  The file has the following format.
 
-```json
-{
-  "user_email": "someuser@somewhere.com",
-  "user_id": "someuser",
-  "issuer_uri": "someprogram.somecompany.com"
-}
-```
-`user_email` and `user_id` is the service provider user who will atttempt to authenticate
+`email` and `uid` are identifiers for the user who will authenticate
 using the identity provider.  When you configure the identity provider this user
-must be authorized to log in on the identity provider.  The `issuer_uri` is
-an identifier for the service provider.  It can be anything as long as it's
+must be authorized to log in on to the identity provider.  `issuer-uri` is
+an identifier for the service provider (this program).  It can be anything as long as it's
 unique to the IDP.  The IDP configuration may have a field called Entity ID
-where you must supply the `issuer_uri` value. 
+where you must supply the `issuer-uri` value. The program will use metadata
+supplied by the identity provider to configure various single sign on parameters. `metadata-path`
+is the path to the metadata xml file supplied by the IDP.

@@ -2,7 +2,6 @@ package saml
 
 import (
 	"bytes"
-	"compress/flate"
 	"encoding/base64"
 	"encoding/xml"
 	"net/url"
@@ -27,13 +26,14 @@ type ServiceProvider struct {
 	// AssertionConsumerServiceURL is the URL of the service provider handler for
 	// the AuthnResponse sent by the IDP after sign on.
 	AssertionConsumerServiceURL string
+	// RelayState url to redirect to after successfully logging in
+	RelayState string
 }
 
 // SSOProvider supplies single sign on functionality
 type SSOProvider struct {
 	serviceProvder *ServiceProvider
 	idpDescription *IDPSSODescriptor
-	relayState     string
 }
 
 // NewSSOProvider creates an SSOProvider
@@ -92,26 +92,43 @@ func (sp *SSOProvider) RedirectBinding() (string, error) {
 		return "", errors.Wrap(err, "compressing auth request")
 	}
 	urlQuery.Set("SAMLRequest", authQueryVal)
-	if sp.relayState != "" {
-		urlQuery.Set("RelayState", sp.relayState)
+	if sp.serviceProvder.RelayState != "" {
+		urlQuery.Set("RelayState", sp.serviceProvder.RelayState)
 	}
 	idpURL.RawQuery = urlQuery.Encode()
 	return idpURL.String(), nil
 }
 
-func deflate(inflated *bytes.Buffer) (string, error) {
-	var deflated bytes.Buffer
-	writer, err := flate.NewWriter(&deflated, flate.DefaultCompression)
+// Identity contains information about the principal that was authenticated
+// with the IDP.  Typically check the user is known to the SP.
+type Identity struct {
+	UserID     string
+	Audience   string
+	Recipient  string
+	RelayState string
+}
+
+// PostBindingResponse validates the IDP AuthnResponse. If successful information about the
+// IDP authorized user is returned.
+func (sp *SSOProvider) PostBindingResponse(samlResponse string) (*Identity, error) {
+	_, err := decodeAuthResponse(samlResponse)
 	if err != nil {
-		return "", err
+		return nil, errors.Wrap(err, "post binding response")
 	}
-	defer writer.Close()
-	_, err = writer.Write(inflated.Bytes())
+	return nil, nil
+}
+
+func decodeAuthResponse(samlResponse string) (*Response, error) {
+	decoded, err := base64.StdEncoding.DecodeString(samlResponse)
 	if err != nil {
-		return "", err
+		return nil, errors.Wrap(err, "decoding auth response")
 	}
-	writer.Flush()
-	return base64.StdEncoding.EncodeToString(deflated.Bytes()), nil
+	var response Response
+	err = xml.NewDecoder(bytes.NewBuffer(decoded)).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func getBindingLocation(desiredBinding string, supported []SingleSignOnService) (string, error) {
