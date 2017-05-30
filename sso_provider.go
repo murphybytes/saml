@@ -113,8 +113,9 @@ type Identity struct {
 }
 
 // PostBindingResponse validates the IDP AuthnResponse. If successful information about the
-// IDP authorized user is returned.
-func (sp *SSOProvider) PostBindingResponse(samlResponse, relayState string, thisInstant time.Time) (*Identity, error) {
+// IDP authorized user is returned. The samlResponse argument is extracted from the form posted
+// from the IDP in the SAMLResponse form value.
+func (sp *SSOProvider) PostBindingResponse(samlResponse string, thisInstant time.Time) (*Identity, error) {
 	decoded, err := base64.StdEncoding.DecodeString(samlResponse)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding saml response")
@@ -147,7 +148,7 @@ func (sp *SSOProvider) PostBindingResponse(samlResponse, relayState string, this
 	}
 	id := &Identity{
 		UserID:     response.Assertion.Subject.NameID.Value,
-		RelayState: relayState,
+		RelayState: "/",
 	}
 
 	return id, nil

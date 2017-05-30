@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -20,11 +18,11 @@ const exitSuccess = 0
 const certPath = "examples/svcprovider/keys/server.crt"
 const keyPath = "examples/svcprovider/keys/server.key"
 const homePagePath = "examples/svcprovider/pages/home.html"
+const errorPagePath = "examples/svcprovider/pages/error.html"
+const successPagePath = "examples/svcprovider/pages/success.html"
 
 func main() {
 	var (
-		userEmail    string
-		userID       string
 		issuerURI    string
 		metadataPath string
 		help         bool
@@ -33,8 +31,6 @@ func main() {
 	workingDir, err := os.Getwd()
 	errHandler(err, "getting working dir")
 
-	flag.StringVar(&userEmail, "email", "", "Email used for authentication.")
-	flag.StringVar(&userID, "uid", "", "User ID used for authentication.")
 	flag.StringVar(&issuerURI, "issuer-uri", "", "The identifier for the service provider.")
 	flag.StringVar(&metadataPath, "metadata-path", fmt.Sprintf("%s/metadata.xml", workingDir), "Path of the IDP metadata file.")
 	flag.BoolVar(&help, "help", false, "Show this message")
@@ -73,20 +69,9 @@ func main() {
 		TLSConfig: &config,
 		Handler: func() *http.ServeMux {
 			mux := http.NewServeMux()
-			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				page, errs := generated.Asset(homePagePath)
-				if errs != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-				w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-				reader := bytes.NewReader(page)
-				_, errs = io.Copy(w, reader)
-				if errs != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-				}
-			})
+			mux.Handle("/", newHomepageHandler())
 			mux.Handle("/login", newLoginHandler(sp, metadata.IDPSSODescriptor))
-			mux.Handle("/callback", newCallbackHandler())
+			mux.Handle("/callback", newCallbackHandler(sp, metadata.IDPSSODescriptor))
 			return mux
 		}(),
 	}

@@ -6,16 +6,12 @@ This program illustrates the usage of the saml package.
 ### Usage
 ```
 Usage of build/svcprovider:
-  -email string
-    	Email used for authentication.
   -help
     	Show this message
   -issuer-uri string
     	The identifier for the service provider.
   -metadata-path string
     	Path of the IDP metadata file. (default "/Users/someuser/metadata.xml")
-  -uid string
-    	User ID used for authentication.
 ```
 
 `email` and `uid` are identifiers for the user who will authenticate

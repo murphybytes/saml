@@ -96,11 +96,10 @@ func TestPostBindingResponse(t *testing.T) {
 	}
 	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
 	requestInstant := clock.NewMockClock(time.Date(2017, 5, 29, 0, 6, 0, 0, time.UTC))
-	identity, err := provider.PostBindingResponse(unencoded, "/", requestInstant.Now())
+	identity, err := provider.PostBindingResponse(unencoded, requestInstant.Now())
 	require.Nil(t, err)
 	require.NotNil(t, identity)
 	assert.Equal(t, "john@kolide.co", identity.UserID)
-	assert.Equal(t, "/", identity.RelayState)
 }
 
 func TestSignatureValidation(t *testing.T) {
