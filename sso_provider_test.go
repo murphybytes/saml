@@ -1,10 +1,13 @@
 package saml
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/Watchbeam/clock"
 	"github.com/murphybytes/saml/generated"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,6 +66,21 @@ func getFormAuthResponse(t *testing.T) string {
 	return unencoded
 }
 
+func getMockProvider(t *testing.T) *SSOProvider {
+	metadata, err := generated.Asset("test_data/metadata.xml")
+	require.Nil(t, err)
+	var entity EntityDescriptor
+	err = xml.Unmarshal(metadata, &entity)
+	require.Nil(t, err)
+	sp := &ServiceProvider{
+		IssuerURI: "uri:myserviceprovider",
+		NameIDFormats: []string{
+			NameIDEmail,
+		},
+	}
+	return NewSSOProvider(sp, &entity.IDPSSODescriptor)
+}
+
 func TestPostBindingResponse(t *testing.T) {
 	unencoded := getFormAuthResponse(t)
 	buff, err := generated.Asset("test_data/metadata.xml")
@@ -77,10 +95,29 @@ func TestPostBindingResponse(t *testing.T) {
 		},
 	}
 	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
-	identity, err := provider.PostBindingResponse(unencoded)
+	requestInstant := clock.NewMockClock(time.Date(2017, 5, 29, 0, 6, 0, 0, time.UTC))
+	identity, err := provider.PostBindingResponse(unencoded, "/", requestInstant.Now())
 	require.Nil(t, err)
 	require.NotNil(t, identity)
 	assert.Equal(t, "john@kolide.co", identity.UserID)
+	assert.Equal(t, "/", identity.RelayState)
+}
+
+func TestSignatureValidation(t *testing.T) {
+	unencoded := getFormAuthResponse(t)
+	provider := getMockProvider(t)
+	decoded, err := base64.StdEncoding.DecodeString(unencoded)
+	require.Nil(t, err)
+	doc, err := provider.validateSignature(decoded)
+	assert.Nil(t, err)
+	assert.NotNil(t, doc)
+}
+
+func TestGetValidationContext(t *testing.T) {
+	provider := getMockProvider(t)
+	context, err := provider.getValidationContext()
+	require.Nil(t, err)
+	assert.NotNil(t, context)
 }
 
 func TestDecodeAuthResponse(t *testing.T) {

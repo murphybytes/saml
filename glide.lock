@@ -1,19 +1,36 @@
-hash: 32f89caceb97aa2d2229b81267d89c6b90c21996f9cd98222e6b928e5bea64a6
-updated: 2017-05-26T15:43:23.923638291-05:00
+hash: 52cff28fcc12d90a704215d2fb29e47182d1173a6b390bc6b2b3b3fd1877b856
+updated: 2017-05-29T19:16:34.122354477-05:00
 imports:
+- name: github.com/beevik/etree
+  version: abae5fc32af8862e420d52e686a7e6ec14111685
+- name: github.com/jonboulle/clockwork
+  version: 2eee05ed794112d45db504eb05aa693efd2b8b09
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/russellhaering/goxmldsig
+  version: 605161228693b2efadce55323c9c661a40c5fbaa
+  subpackages:
+  - etreeutils
+  - types
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
   - assert
   - require
+- name: github.com/WatchBeam/clock
+  version: d5a6612f3d9a070b964adc65dbd94c6080458f83
 testImports:
 - name: github.com/davecgh/go-spew
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
+- name: github.com/kr/pretty
+  version: cfb55aafdaf3ec08f0db22699ab822c50091b1c4
+- name: github.com/kr/text
+  version: 7cafcd837844e784b526369c9bce262804aebc60
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
   - difflib
+- name: github.com/y0ssar1an/q
+  version: fa776c11230850856c3df1e5f1deb78923e46d09

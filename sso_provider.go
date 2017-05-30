@@ -2,12 +2,16 @@ package saml
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/xml"
 	"net/url"
 	"time"
 
+	"github.com/beevik/etree"
 	"github.com/pkg/errors"
+	dsig "github.com/russellhaering/goxmldsig"
+	"github.com/russellhaering/goxmldsig/etreeutils"
 )
 
 var (
@@ -110,12 +114,102 @@ type Identity struct {
 
 // PostBindingResponse validates the IDP AuthnResponse. If successful information about the
 // IDP authorized user is returned.
-func (sp *SSOProvider) PostBindingResponse(samlResponse string) (*Identity, error) {
-	_, err := decodeAuthResponse(samlResponse)
+func (sp *SSOProvider) PostBindingResponse(samlResponse, relayState string, thisInstant time.Time) (*Identity, error) {
+	decoded, err := base64.StdEncoding.DecodeString(samlResponse)
 	if err != nil {
-		return nil, errors.Wrap(err, "post binding response")
+		return nil, errors.Wrap(err, "decoding saml response")
 	}
-	return nil, nil
+	signed, err := sp.validateSignature(decoded)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating auth response signature")
+	}
+	var xmlBuff bytes.Buffer
+	doc := etree.NewDocument()
+	doc.SetRoot(signed)
+	_, err = doc.WriteTo(&xmlBuff)
+	if err != nil {
+		return nil, errors.Wrap(err, "processing post response xml")
+	}
+	var response Response
+	err = xml.NewDecoder(&xmlBuff).Decode(&response)
+	if err != nil {
+		return nil, errors.Wrap(err, "decoding signed post response xml")
+	}
+	if !isStatusSuccess(response.Status.StatusCode.Value) {
+		return nil, errors.Errorf("IDP Status: %s", response.Status.StatusCode.Value)
+	}
+	ok, err := timestampValid(&response, thisInstant)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating auth response")
+	}
+	if !ok {
+		return nil, errors.New("response timestamp is not valid")
+	}
+	id := &Identity{
+		UserID:     response.Assertion.Subject.NameID.Value,
+		RelayState: relayState,
+	}
+
+	return id, nil
+}
+
+func (sp *SSOProvider) validateSignature(xmlBytes []byte) (*etree.Element, error) {
+	doc := etree.NewDocument()
+	err := doc.ReadFromBytes(xmlBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "xml for signature validation")
+	}
+	if doc.Root() == nil {
+		return nil, errors.New("missing xml doc")
+	}
+	context, err := sp.getValidationContext()
+	if err != nil {
+		return nil, errors.Wrap(err, "setting up sig validation context")
+	}
+	root := doc.Root()
+	validated, err := context.Validate(root)
+	if err == nil {
+		return validated, err
+	}
+	if err == dsig.ErrMissingSignature {
+		err = etreeutils.NSFindIterate(root, samlNamespace, assertionTag, func(ctx etreeutils.NSContext, unverified *etree.Element) error {
+			if unverified.Parent() != root {
+				return errors.Errorf("assertion with unexpected parent: %s", unverified.Parent())
+			}
+			detached, err := etreeutils.NSDetatch(ctx, unverified)
+			if err != nil {
+				return err
+			}
+			signed, err := context.Validate(detached)
+			if err != nil {
+				return err
+			}
+			root.RemoveChild(unverified)
+			root.AddChild(signed)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return root, nil
+	}
+	return nil, err
+}
+
+func (sp *SSOProvider) getValidationContext() (*dsig.ValidationContext, error) {
+	var certStore dsig.MemoryX509CertificateStore
+	for _, key := range sp.idpDescription.KeyDescriptors {
+		certData, err := base64.StdEncoding.DecodeString(key.KeyInfo.X509Data.X509Certificate.Data)
+		if err != nil {
+			return nil, errors.Wrap(err, "decoding x509 cert")
+		}
+		cert, err := x509.ParseCertificate(certData)
+		if err != nil {
+			return nil, errors.Wrap(err, "parsing x509 cert")
+		}
+		certStore.Roots = append(certStore.Roots, cert)
+	}
+	return dsig.NewDefaultValidationContext(&certStore), nil
 }
 
 func decodeAuthResponse(samlResponse string) (*Response, error) {

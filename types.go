@@ -16,6 +16,7 @@ const (
 	// namespaces
 	samlProtocalNamespace = "urn:oasis:names:tc:SAML:2.0:protocol"
 	samlNamespace         = "urn:oasis:names:tc:SAML:2.0:assertion"
+	assertionTag          = "Assertion"
 )
 
 // EntityDescriptor specifies metadata for a single SAML entity.

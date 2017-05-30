@@ -7,3 +7,9 @@ import:
   - require
 - package: github.com/pkg/errors
   version: ~0.8.0
+- package: github.com/russellhaering/goxmldsig
+- package: github.com/beevik/etree
+  version: ^0.0.0
+- package: github.com/jonboulle/clockwork
+  version: ^0.1.0
+- package: github.com/WatchBeam/clock

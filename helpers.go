@@ -5,6 +5,7 @@ import (
 	"compress/flate"
 	"crypto/rand"
 	"encoding/base64"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -37,4 +38,16 @@ func deflate(inflated *bytes.Buffer) (string, error) {
 	}
 	writer.Flush()
 	return base64.StdEncoding.EncodeToString(deflated.Bytes()), nil
+}
+
+func timestampValid(response *Response, thisInstant time.Time) (bool, error) {
+	notOnOrAfter, err := time.Parse(time.RFC3339, response.Assertion.Conditions.NotOnOrAfter)
+	if err != nil {
+		return false, errors.Wrap(err, "validating response timestamp")
+	}
+	notBefore, err := time.Parse(time.RFC3339, response.Assertion.Conditions.NotBefore)
+	if err != nil {
+		return false, errors.Wrap(err, "validating response timestamp")
+	}
+	return thisInstant.After(notBefore) && thisInstant.Before(notOnOrAfter), nil
 }

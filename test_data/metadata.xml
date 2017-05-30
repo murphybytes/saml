@@ -29,12 +29,12 @@ xETaRT/IUz9ZVKsbJ1k9OOp83RtPC8d3MIhnwQXFvhQO46gOFPEfbg==</ds:X509Certificate>
         </ds:X509Data>
       </ds:KeyInfo>
     </KeyDescriptor>
-    <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://test-dev.onelogin.com/trust/saml2/http-redirect/slo/649458"/>
-
+    <SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://kolide-dev.onelogin.com/trust/saml2/http-redirect/slo/649458"/>
+    
       <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</NameIDFormat>
-
-    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://test-dev.onelogin.com/trust/saml2/http-redirect/sso/649458"/>
-    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://test-dev.onelogin.com/trust/saml2/http-post/sso/649458"/>
-    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://test-dev.onelogin.com/trust/saml2/soap/sso/649458"/>
+    
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://kolide-dev.onelogin.com/trust/saml2/http-redirect/sso/649458"/>
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://kolide-dev.onelogin.com/trust/saml2/http-post/sso/649458"/>
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://kolide-dev.onelogin.com/trust/saml2/soap/sso/649458"/>
   </IDPSSODescriptor>
 </EntityDescriptor>
