@@ -58,6 +58,30 @@ func TestRedirectBinding(t *testing.T) {
 	assert.NotEqual(t, "", binding)
 }
 
+func TestRedirectBindingWithRelayState(t *testing.T) {
+	buff, err := generated.Asset("test_data/metadata.xml")
+	require.Nil(t, err)
+	require.NotNil(t, buff)
+
+	var entity EntityDescriptor
+	err = xml.Unmarshal(buff, &entity)
+	require.Nil(t, err)
+
+	sp := &ServiceProvider{
+		IssuerURI: "uri:myserviceprovider",
+		NameIDFormats: []string{
+			NameIDEmail,
+		},
+	}
+
+	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
+	// Use optional parameter to pass relay state
+	binding, err := provider.RedirectBinding(RelayState("foobar"))
+	assert.Nil(t, err)
+	assert.NotEqual(t, "", binding)
+	assert.Contains(t, binding, "foobar")
+}
+
 func getFormAuthResponse(t *testing.T) string {
 	rawResponse, err := generated.Asset("test_data/authresponse")
 	require.Nil(t, err)

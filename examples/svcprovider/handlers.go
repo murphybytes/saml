@@ -25,7 +25,12 @@ func newLoginHandler(sp saml.ServiceProvider, metadata saml.IDPSSODescriptor) ht
 
 // ServeHTTP gets a URL that redirects to the IDP and logs in.
 func (h *loginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	redirect, err := h.ssoProvider.RedirectBinding()
+	err := r.ParseForm()
+	if err != nil {
+		writeServerError(w, err, "parsing login form")
+	}
+	rs := r.FormValue("relay")
+	redirect, err := h.ssoProvider.RedirectBinding(saml.RelayState(rs))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -78,7 +83,14 @@ func (h *callbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeServerError(w, err, "parsing error template")
 		return
 	}
-	err = successPageTemplate.Execute(w, id.UserID)
+	args := struct {
+		User       string
+		RelayState string
+	}{
+		User:       id.UserID,
+		RelayState: r.FormValue("RelayState"),
+	}
+	err = successPageTemplate.Execute(w, args)
 	if err != nil {
 		writeServerError(w, err, "writing success page")
 	}

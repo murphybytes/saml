@@ -30,8 +30,6 @@ type ServiceProvider struct {
 	// AssertionConsumerServiceURL is the URL of the service provider handler for
 	// the AuthnResponse sent by the IDP after sign on.
 	AssertionConsumerServiceURL string
-	// RelayState url to redirect to after successfully logging in
-	RelayState string
 }
 
 // SSOProvider supplies single sign on functionality
@@ -48,10 +46,29 @@ func NewSSOProvider(spDescription *ServiceProvider, idpDescription *IDPSSODescri
 	}
 }
 
+type relayState string
+
+// RelayState use to pass optional relay state to redirect binding
+func RelayState(rs string) func() interface{} {
+	return func() interface{} {
+		return relayState(rs)
+	}
+}
+
 // RedirectBinding returns a url suitable for use to satisfy the SAML
-// redirect binding.
+// redirect binding. Optionally a relay state may be supplied. Typically this
+// would be the URL of the protected resource the user was trying to access when they
+// were prompted to log in.  On successful log in the app would redirect to the url
+// contained in RelayState.
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf Section 3.4
-func (sp *SSOProvider) RedirectBinding() (string, error) {
+func (sp *SSOProvider) RedirectBinding(opts ...func() interface{}) (string, error) {
+	var rState string
+	for _, opt := range opts {
+		switch t := opt().(type) {
+		case relayState:
+			rState = string(t)
+		}
+	}
 	idpRedirectURL, err := getBindingLocation(redirectBinding, sp.idpDescription.SingleSignOnService)
 	if err != nil {
 		return "", err
@@ -96,8 +113,8 @@ func (sp *SSOProvider) RedirectBinding() (string, error) {
 		return "", errors.Wrap(err, "compressing auth request")
 	}
 	urlQuery.Set("SAMLRequest", authQueryVal)
-	if sp.serviceProvder.RelayState != "" {
-		urlQuery.Set("RelayState", sp.serviceProvder.RelayState)
+	if rState != "" {
+		urlQuery.Set("RelayState", rState)
 	}
 	idpURL.RawQuery = urlQuery.Encode()
 	return idpURL.String(), nil
