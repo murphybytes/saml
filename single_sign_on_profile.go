@@ -123,6 +123,8 @@ func (sp *SingleSignOnProfile) RedirectBinding(opts ...func() interface{}) (stri
 // HandlePostResponse validates the IDP AuthnResponse. If successful information about the
 // IDP authorized user is returned. The samlResponse argument is extracted from the form posted
 // from the IDP in the SAMLResponse form value.
+// TODO: change samlResponse to http.Request and handle form parsing, and key retrieval in this method
+// TODO: probably want to create interface for http.Request for better testing
 func (sp *SingleSignOnProfile) HandlePostResponse(samlResponse string, thisInstant time.Time) (*CallbackResponse, error) {
 	decoded, err := base64.StdEncoding.DecodeString(samlResponse)
 	if err != nil {
