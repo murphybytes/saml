@@ -32,15 +32,15 @@ type ServiceProvider struct {
 	AssertionConsumerServiceURL string
 }
 
-// SSOProvider supplies single sign on functionality
-type SSOProvider struct {
+// SingleSignOnProfile supplies single sign on functionality
+type SingleSignOnProfile struct {
 	serviceProvder *ServiceProvider
 	idpDescription *IDPSSODescriptor
 }
 
-// NewSSOProvider creates an SSOProvider
-func NewSSOProvider(spDescription *ServiceProvider, idpDescription *IDPSSODescriptor) *SSOProvider {
-	return &SSOProvider{
+// NewSingleSignOnProfile creates an SSOProvider
+func NewSingleSignOnProfile(spDescription *ServiceProvider, idpDescription *IDPSSODescriptor) *SingleSignOnProfile {
+	return &SingleSignOnProfile{
 		serviceProvder: spDescription,
 		idpDescription: idpDescription,
 	}
@@ -61,15 +61,15 @@ func RelayState(rs string) func() interface{} {
 // were prompted to log in.  On successful log in the app would redirect to the url
 // contained in RelayState.
 // See http://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf Section 3.4
-func (sp *SSOProvider) RedirectBinding(opts ...func() interface{}) (string, error) {
-	var rState string
+func (sp *SingleSignOnProfile) RedirectBinding(opts ...func() interface{}) (string, error) {
+	var rs relayState
 	for _, opt := range opts {
 		switch t := opt().(type) {
 		case relayState:
-			rState = string(t)
+			rs = t
 		}
 	}
-	idpRedirectURL, err := getBindingLocation(redirectBinding, sp.idpDescription.SingleSignOnService)
+	idpRedirectURL, err := getSSOBindingLocation(redirectBinding, sp.idpDescription.SingleSignOnService)
 	if err != nil {
 		return "", err
 	}
@@ -112,27 +112,18 @@ func (sp *SSOProvider) RedirectBinding(opts ...func() interface{}) (string, erro
 	if err != nil {
 		return "", errors.Wrap(err, "compressing auth request")
 	}
-	urlQuery.Set("SAMLRequest", authQueryVal)
-	if rState != "" {
-		urlQuery.Set("RelayState", rState)
+	urlQuery.Set(RequestQueryKey, authQueryVal)
+	if rs != "" {
+		urlQuery.Set(RelayStateQueryKey, string(rs))
 	}
 	idpURL.RawQuery = urlQuery.Encode()
 	return idpURL.String(), nil
 }
 
-// Identity contains information about the principal that was authenticated
-// with the IDP.  Typically check the user is known to the SP.
-type Identity struct {
-	UserID     string
-	Audience   string
-	Recipient  string
-	RelayState string
-}
-
-// PostBindingResponse validates the IDP AuthnResponse. If successful information about the
+// HandlePostResponse validates the IDP AuthnResponse. If successful information about the
 // IDP authorized user is returned. The samlResponse argument is extracted from the form posted
 // from the IDP in the SAMLResponse form value.
-func (sp *SSOProvider) PostBindingResponse(samlResponse string, thisInstant time.Time) (*Identity, error) {
+func (sp *SingleSignOnProfile) HandlePostResponse(samlResponse string, thisInstant time.Time) (*CallbackResponse, error) {
 	decoded, err := base64.StdEncoding.DecodeString(samlResponse)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding saml response")
@@ -163,15 +154,18 @@ func (sp *SSOProvider) PostBindingResponse(samlResponse string, thisInstant time
 	if !ok {
 		return nil, errors.New("response timestamp is not valid")
 	}
-	id := &Identity{
-		UserID:     response.Assertion.Subject.NameID.Value,
-		RelayState: "/",
+
+	cbr := &CallbackResponse{
+		Identity: &Identity{
+			UserID:     response.Assertion.Subject.NameID.Value,
+			RelayState: "/",
+		},
 	}
 
-	return id, nil
+	return cbr, nil
 }
 
-func (sp *SSOProvider) validateSignature(xmlBytes []byte) (*etree.Element, error) {
+func (sp *SingleSignOnProfile) validateSignature(xmlBytes []byte) (*etree.Element, error) {
 	doc := etree.NewDocument()
 	err := doc.ReadFromBytes(xmlBytes)
 	if err != nil {
@@ -214,7 +208,7 @@ func (sp *SSOProvider) validateSignature(xmlBytes []byte) (*etree.Element, error
 	return nil, err
 }
 
-func (sp *SSOProvider) getValidationContext() (*dsig.ValidationContext, error) {
+func (sp *SingleSignOnProfile) getValidationContext() (*dsig.ValidationContext, error) {
 	var certStore dsig.MemoryX509CertificateStore
 	for _, key := range sp.idpDescription.KeyDescriptors {
 		certData, err := base64.StdEncoding.DecodeString(key.KeyInfo.X509Data.X509Certificate.Data)
@@ -243,10 +237,10 @@ func decodeAuthResponse(samlResponse string) (*Response, error) {
 	return &response, nil
 }
 
-func getBindingLocation(desiredBinding string, supported []SingleSignOnService) (string, error) {
-	for _, ssoSvc := range supported {
-		if ssoSvc.Binding == desiredBinding {
-			return ssoSvc.Location, nil
+func getSSOBindingLocation(desiredBinding string, services []SingleSignOnService) (string, error) {
+	for _, svc := range services {
+		if svc.Binding == desiredBinding {
+			return svc.Location, nil
 		}
 	}
 	return "", ErrBindingNotSupported

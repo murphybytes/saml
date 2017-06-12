@@ -6,6 +6,12 @@
       div.clear         { clear: both; }
       div.content       { width: 900px; padding-top: 10px; padding-bottom: 10px; }
     </style>
+    <script>
+      const load = () => {
+        localStorage.setItem('svcprovider:LOGIN', {{.User}});
+      };
+      window.onload = load;
+    </script>
   </head>
   <body>
     <h3>Login Success</h3>
@@ -15,5 +21,6 @@
     <div class="content">
       <strong>Relay State:</strong> {{.RelayState}}
     </div>
+    <a href="/" >Home</a>
   </body>
 </html>

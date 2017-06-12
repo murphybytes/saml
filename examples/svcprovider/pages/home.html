@@ -5,7 +5,29 @@
       div.columns div   { width: 300px; float: left; }
       div.clear         { clear: both; }
       div.content       { width: 900px; padding-top: 10px; padding-bottom: 10px; }
+      div.hidden { visibility: hidden; }
     </style>
+    <script>
+
+      const load = () => {
+        document.getElementById('logoutlink').addEventListener('click', (event) =>{
+          event.preventDefault();
+          const logoutURL = '/logout?uid=' + escape(localStorage.getItem('svcprovider:LOGIN'));
+          localStorage.clear();
+          console.log(`logout url ${logoutURL}`);
+          window.location.href = logoutURL;
+          return false;
+        });
+        if (localStorage.getItem('svcprovider:LOGIN')) {
+          let elt = document.getElementById('login');
+          elt.style.display = 'none';
+        } else {
+          let elt = document.getElementById('logout');
+          elt.style.display = 'none';
+        }
+      }
+      window.onload = load;
+    </script>
   </head>
   <body>
     <h3>Single Sign On Test Page</h3>
@@ -15,17 +37,23 @@
       The <a href="https://addons.mozilla.org/en-US/firefox/addon/saml-tracer/">SAML Tracer</a> add-on
       for Firefox is also useful in diagnosing problems with a particular identity provider.
     </div>
-    <form action="/login" method="post">
-      <div class="columns">
-        <div>
-            Relay URL:
+    <div id="logout">
+      <h3>You are logged in</h3>
+      <a id="logoutlink" href='#' >Log Out</a>
+    </div>
+    <div id="login">
+      <form action="/login" method="post">
+        <div class="columns">
+          <div>
+              Relay URL:
+          </div>
+          <div>
+            <input type="text" name="relay" id="relay" value="/test"/>
+          </div>
         </div>
-        <div>
-          <input type="text" name="relay" id="relay" value="/test"/>
-        </div>
-      </div>
-      <div class="clear"></div>
-      <input type="submit" value="Login" />
-    </form>
+        <div class="clear"></div>
+        <input type="submit" value="Login" />
+      </form>
+    </div>
   </body>
 </html>

@@ -25,11 +25,11 @@ func TestGetBindingLocation(t *testing.T) {
 		},
 	}
 
-	location, err := getBindingLocation(redirectBinding, supported)
+	location, err := getSSOBindingLocation(redirectBinding, supported)
 	require.Nil(t, err)
 	assert.Equal(t, "https://myidp.com/redirect", location)
 
-	_, err = getBindingLocation(soapBinding, supported)
+	_, err = getSSOBindingLocation(soapBinding, supported)
 	require.NotNil(t, err)
 	assert.Equal(t, ErrBindingNotSupported, err)
 
@@ -51,7 +51,7 @@ func TestRedirectBinding(t *testing.T) {
 		},
 	}
 
-	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
+	provider := NewSingleSignOnProfile(sp, &entity.IDPSSODescriptor)
 
 	binding, err := provider.RedirectBinding()
 	assert.Nil(t, err)
@@ -74,7 +74,7 @@ func TestRedirectBindingWithRelayState(t *testing.T) {
 		},
 	}
 
-	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
+	provider := NewSingleSignOnProfile(sp, &entity.IDPSSODescriptor)
 	// Use optional parameter to pass relay state
 	binding, err := provider.RedirectBinding(RelayState("foobar"))
 	assert.Nil(t, err)
@@ -90,7 +90,7 @@ func getFormAuthResponse(t *testing.T) string {
 	return unencoded
 }
 
-func getMockProvider(t *testing.T) *SSOProvider {
+func getMockProvider(t *testing.T) *SingleSignOnProfile {
 	metadata, err := generated.Asset("test_data/metadata.xml")
 	require.Nil(t, err)
 	var entity EntityDescriptor
@@ -102,7 +102,7 @@ func getMockProvider(t *testing.T) *SSOProvider {
 			NameIDEmail,
 		},
 	}
-	return NewSSOProvider(sp, &entity.IDPSSODescriptor)
+	return NewSingleSignOnProfile(sp, &entity.IDPSSODescriptor)
 }
 
 func TestPostBindingResponse(t *testing.T) {
@@ -118,9 +118,9 @@ func TestPostBindingResponse(t *testing.T) {
 			NameIDEmail,
 		},
 	}
-	provider := NewSSOProvider(sp, &entity.IDPSSODescriptor)
+	provider := NewSingleSignOnProfile(sp, &entity.IDPSSODescriptor)
 	requestInstant := clock.NewMockClock(time.Date(2017, 5, 29, 0, 6, 0, 0, time.UTC))
-	identity, err := provider.PostBindingResponse(unencoded, requestInstant.Now())
+	identity, err := provider.HandlePostResponse(unencoded, requestInstant.Now())
 	require.Nil(t, err)
 	require.NotNil(t, identity)
 	assert.Equal(t, "john@kolide.co", identity.UserID)

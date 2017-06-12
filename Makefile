@@ -5,6 +5,8 @@ deps:
 	glide install --strip-vendor
 
 generate:
+	rm -f generated/bindata.go
+	rm -f examples/svcprovider/generated/bindata.go
 	go-bindata -pkg=generated -o=generated/bindata.go test_data
 	go-bindata -pkg=generated -o=examples/svcprovider/generated/bindata.go examples/svcprovider/keys examples/svcprovider/pages
 

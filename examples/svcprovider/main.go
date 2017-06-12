@@ -54,8 +54,8 @@ func main() {
 		Certificates: []tls.Certificate{tlsCert},
 	}
 
-	metadata, err := getMetadata(metadataPath)
-	errHandler(err, "getting metadata")
+	metadata, err := saml.GetMetadataFromFile(metadataPath)
+	errHandler(err, fmt.Sprintf("reading from %q", metadataPath))
 	sp := saml.ServiceProvider{
 		IssuerURI: issuerURI,
 		NameIDFormats: []string{
@@ -71,7 +71,9 @@ func main() {
 			mux := http.NewServeMux()
 			mux.Handle("/", newHomepageHandler())
 			mux.Handle("/login", newLoginHandler(sp, metadata.IDPSSODescriptor))
-			mux.Handle("/callback", newCallbackHandler(sp, metadata.IDPSSODescriptor))
+			mux.Handle("/login/callback", newLoginCallbackHandler(sp, metadata.IDPSSODescriptor))
+			mux.Handle("/logout", newLogoutHandler(sp, metadata))
+			mux.Handle("/logout/callback", newLogoutCallbackHandler(sp, metadata))
 			return mux
 		}(),
 	}

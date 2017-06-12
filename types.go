@@ -12,7 +12,11 @@ const (
 	postBinding     = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 	soapBinding     = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
 	// user identifier support
-	NameIDEmail = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+	NameIDEmail             = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+	NameIDUnspecified       = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+	NameIDX509SubjectName   = "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
+	NameIDWindowsDomainName = "urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName"
+	NameIDKerboros          = "urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos"
 	// namespaces
 	samlProtocalNamespace = "urn:oasis:names:tc:SAML:2.0:protocol"
 	samlNamespace         = "urn:oasis:names:tc:SAML:2.0:assertion"
@@ -30,6 +34,7 @@ type EntityDescriptor struct {
 type IDPSSODescriptor struct {
 	XMLName             xml.Name              `xml:"urn:oasis:names:tc:SAML:2.0:metadata IDPSSODescriptor"`
 	KeyDescriptors      []KeyDescriptor       `xml:"KeyDescriptor"`
+	SingleLogoutService []SingleLogoutService `xml:"SingleLogoutService"`
 	NameIDFormats       []NameIDFormat        `xml:"NameIDFormat"`
 	SingleSignOnService []SingleSignOnService `xml:"SingleSignOnService"`
 	Attributes          []Attribute           `xml:"Attribute"`
@@ -49,9 +54,17 @@ type NameIDFormat struct {
 	Value   string   `xml:",chardata"`
 }
 
-// SingleSignOnService contains information used to build redirect URL
+// SingleSignOnService contains information about how to connect to the IDP and
+// sign on.
 type SingleSignOnService struct {
 	XMLName  xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:metadata SingleSignOnService"`
+	Binding  string   `xml:"Binding,attr"`
+	Location string   `xml:"Location,attr"`
+}
+
+// SingleLogoutService contains parameters needed to connect to the IPD and logout.
+type SingleLogoutService struct {
+	XMLName  xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:metadata SingleLogoutService"`
 	Binding  string   `xml:"Binding,attr"`
 	Location string   `xml:"Location,attr"`
 }
@@ -110,6 +123,38 @@ type AuthnRequest struct {
 	RequestedAuthnContext       *RequestedAuthnContext `xml:"RequestedAuthnContext,omitempty"`
 	Signature                   *Signature             `xml:"Signature,omitempty"`
 	originalString              string
+}
+
+// LogoutRequest is sent to the IDP when the Service Provider initiates the logout request.  If the IDP initiates
+// the request, the logout request is sent to the service provider.
+// See https://www.oasis-open.org/committees/download.php/35711/sstc-saml-core-errata-2.0-wd-06-diff.pdf Section 3.7.1
+// Also Single Logout Profile
+// See https://www.oasis-open.org/committees/download.php/35389/sstc-saml-profiles-errata-2.0-wd-06-diff.pdf Section 4.4.
+type LogoutRequest struct {
+	XMLName      xml.Name
+	SAMLP        string `xml:"xmlns:samlp,attr"`
+	SAML         string `xml:"xmlns:saml,attr"`
+	SAMLSIG      string `xml:"xmlns:samlsig,attr,omitempty"`
+	ID           string `xml:"ID,attr"`
+	IssueInstant string `xml:"IssueInstant,attr"`
+	Version      string `xml:"Version,attr"`
+	Issuer       Issuer
+	NameID       NameID
+}
+
+// LogoutResponse this is either send to the Service Provider in response to
+// a LogoutRequest sent to the IDP, or may be returned to the IDP in the event
+// the the IDP initiates the logout request.
+type LogoutResponse struct {
+	XMLName      xml.Name
+	InResponseTo string `xml:"InResponseTo,attr"`
+	Version      string `xml:"Version,attr"`
+	IssueInstant string `xml:"IssueInstant,attr"`
+	SAMLP        string `xml:"xmlns:samlp,attr"`
+	SAMLSIG      string `xml:"xmlns:samlsig,attr,omitempty"`
+	ID           string `xml:"ID,attr"`
+	Issuer       Issuer `xml:"Issuer"`
+	Status       Status `xml:"Status"`
 }
 
 // Issuer the issuer of the assertion

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://app.onelogin.com/saml/metadata/649458">
+  <IDPSSODescriptor xmlns:ds="http://www.w3.org/2000/09/xmldsig#" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIIEFDCCAvygAwIBAgIUZqQYU5dknuhaM2ayNHztIS4WX7QwDQYJKoZIhvcNAQEF
+BQAwVzELMAkGA1UEBhMCVVMxDzANBgNVBAoMBktvbGlkZTEVMBMGA1UECwwMT25l
+TG9naW4gSWRQMSAwHgYDVQQDDBdPbmVMb2dpbiBBY2NvdW50IDEwNTAxMzAeFw0x
+NzA0MTcyMjQwMThaFw0yMjA0MTgyMjQwMThaMFcxCzAJBgNVBAYTAlVTMQ8wDQYD
+VQQKDAZLb2xpZGUxFTATBgNVBAsMDE9uZUxvZ2luIElkUDEgMB4GA1UEAwwXT25l
+TG9naW4gQWNjb3VudCAxMDUwMTMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQDVTaDF3MpmVZ+AZet1uUZxfP5rwoXTayhWgvQmg9nhe7JJGPMd7T8TadKR
+kv53r55sKcE6ASHVc/VFF6tfKtUULv5i1MVK/q59i7kqu9wAs8e1ZsgD14WtrH6V
++W589+6SRXY75P1JauGwesWUQ/jeDnB+Kz2JiJ2RuMhfVLUV/epth9CBNEwXPK2t
+sgQSiEuVnf08hXRmHUG7KV3HSWtTl4qTwnauR+vwESC0wO5KJ7+VEeXys5Ij8r32
+ITkiUVF/vGIxfQIhbRUOVxsKgQVtAXY10StbdbeqKHKgfZOClZf9lwHNYj5wcKbZ
++oTXQQ0TZYZNs8alTb9dpZiKpUk9AgMBAAGjgdcwgdQwDAYDVR0TAQH/BAIwADAd
+BgNVHQ4EFgQUHLqlXa5KR0/eodTA9QVGpyNOplQwgZQGA1UdIwSBjDCBiYAUHLql
+Xa5KR0/eodTA9QVGpyNOplShW6RZMFcxCzAJBgNVBAYTAlVTMQ8wDQYDVQQKDAZL
+b2xpZGUxFTATBgNVBAsMDE9uZUxvZ2luIElkUDEgMB4GA1UEAwwXT25lTG9naW4g
+QWNjb3VudCAxMDUwMTOCFGakGFOXZJ7oWjNmsjR87SEuFl+0MA4GA1UdDwEB/wQE
+AwIHgDANBgkqhkiG9w0BAQUFAAOCAQEAvqeRQPEzuz1tYMuQlXFtMYTxLhFpvx5g
+PkbwAoh9e5GiiDvgKa61mfy+fmTMxDBvuE65OeTz8NMngHfI57Wr42aiMuMi9pTI
+XuUncyJLWhzTFL/aV/oBZALl+zI5gvGdoMxrAFr2Pw7pSobXvkt3IgfNfmuAzJgH
+TP6ax9iRUBFXf7BMTflXDiexMJz7+sjj5iplhljq4suUFPH8CeQwL9euadE87wB4
+eak4Bdr0BL0St4oGLBO1OPlIbWdLwI5zOydwFJa1TIy5eGqtrWHO1Y+Uxsyq6OtO
+xETaRT/IUz9ZVKsbJ1k9OOp83RtPC8d3MIhnwQXFvhQO46gOFPEfbg==</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </KeyDescriptor>
+      <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</NameIDFormat>
+
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://kolide-dev.onelogin.com/trust/saml2/http-redirect/sso/649458"/>
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://kolide-dev.onelogin.com/trust/saml2/http-post/sso/649458"/>
+    <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://kolide-dev.onelogin.com/trust/saml2/soap/sso/649458"/>
+  </IDPSSODescriptor>
+</EntityDescriptor>
