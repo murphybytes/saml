@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Watchbeam/clock"
 	"github.com/murphybytes/saml/generated"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -119,8 +118,8 @@ func TestPostBindingResponse(t *testing.T) {
 		},
 	}
 	provider := NewSingleSignOnProfile(sp, &entity.IDPSSODescriptor)
-	requestInstant := clock.NewMockClock(time.Date(2017, 5, 29, 0, 6, 0, 0, time.UTC))
-	identity, err := provider.HandlePostResponse(unencoded, requestInstant.Now())
+	requestInstant := time.Date(2017, 5, 29, 0, 6, 0, 0, time.UTC)
+	identity, err := provider.HandlePostResponse(unencoded, requestInstant)
 	require.Nil(t, err)
 	require.NotNil(t, identity)
 	assert.Equal(t, "john@kolide.co", identity.UserID)
